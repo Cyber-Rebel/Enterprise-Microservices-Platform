@@ -9,5 +9,6 @@ const upload = multer({storage: multer.memoryStorage()}); // Store files in memo
 // Validation rules are moved to middleware: ../middlewares/product.validation.js
 
 router.post('/', createauthMiddleware(['admin','seller']), upload.array('images', 5), createProductValidation, productController.createProduct );
+// router.get('/')
 
 module.exports = router;

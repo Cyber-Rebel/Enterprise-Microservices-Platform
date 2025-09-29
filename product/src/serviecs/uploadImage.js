@@ -9,7 +9,8 @@ const imagekit = new Imagekit({
     urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
 });
 
-const uploadImage = (file) => {
+const uploadImage = ({file}) => {
+    // console.log(file.file)
     return new Promise((resolve, reject) => {
         imagekit.upload({
             file: file, // the file buffer
@@ -17,8 +18,11 @@ const uploadImage = (file) => {
             folder: "/products" // optional folder path
         }, (error, result) => {
             if (error) {
+                console.log('the upload iamgekit error',error)
                 return reject(error);
             }
+
+                console.log('the upload iamgekit',result)
             resolve(result);
         });
     });

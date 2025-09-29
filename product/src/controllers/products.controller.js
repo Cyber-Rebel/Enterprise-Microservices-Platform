@@ -21,6 +21,7 @@ const createProduct = async (req, res) => {
       amount: Number(priceAmount),
       currency: priceCurrency,
     };
+    // console.log('the price', req.files);
 
     // upload images (if any) and collect results
     let images = [];
@@ -28,7 +29,8 @@ const createProduct = async (req, res) => {
       const uploadPromises = req.files.map((file) => uploadImage({ file: file.buffer }));
       // uploadImage returns a promise that resolves to the result from imagekit
       const uploadResults = await Promise.all(uploadPromises);
-      images = uploadResults.map((r) => ({ url: r.url, thumbnail: r.thumbnail || r.url, id: r.fileId || r.file_id || r.name }));
+      images = uploadResults.map((r) => ({ url: r.url, thumbnail: r.thumbnailUrl, id: r.fileId }));
+    
     }
 
     // create and save product

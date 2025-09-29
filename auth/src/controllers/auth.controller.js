@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const redis = require("../db/redis.js");
  const register = async (req, res) => {
   try {
-    const { username, email, password, fullName:{firstName,lastName} } = req.body
+    const { username, email, password, fullName:{firstName,lastName},role } = req.body
     // Check if user already exists
         // In MongoDB, the $or operator is used when you want to match documents that satisfy at least one condition from multiple conditions.
         const existingUser = await UserModel.findOne({ $or: [{ username }, { email }] }) //  dhoni paki ek tari true zali pahje tar chalel nahi tar nahi at least one  
@@ -20,7 +20,8 @@ const redis = require("../db/redis.js");
       password: hashedPassword,
       fullName:{
         firstName,lastName
-      }
+      },
+      role:role||'user'
     })
      const token = jwt.sign({
        id: newUser._id,
