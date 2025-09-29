@@ -1,18 +1,11 @@
-const app = require('./src/app.js')
-require('dotenv').config()
-const connectdb = require('./src/db/db.js')
+const app = require('./src/index.js');
+require('dotenv').config();
+const connectDB = require('./src/db/db.js');    
+connectDB()
 
 
-connectdb()
+app.listen(3001 ,() => {
+  console.log(`Server is running on port ${3001}`);
+});
 
 
-
-
-
-
-
-
-
-app.listen(3001, () => {
-    console.log("Server is running at port 3001");
-})
