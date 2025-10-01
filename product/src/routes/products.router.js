@@ -10,7 +10,8 @@ const upload = multer({storage: multer.memoryStorage()}); // Store files in memo
 
 router.post('/', createauthMiddleware(['admin','seller']), upload.array('images', 5), createProductValidation, productController.createProduct );
 router.get('/',productController.getProducts);
-router.get('/:id',productController.getProductById);
-router.patch('/:id')
-
+router.patch('/:id' ,createauthMiddleware('seller'),   productController.updateProduct);
+router.delete('/:id' ,createauthMiddleware('seller'),   productController.deleteProduct);
+router.get('/seller',createauthMiddleware('seller'), productController.getProductsBySeller);
+router.get('/:id',productController.getProductById); // agar ese uparkar diya to /seller ka part wo handle kargi isleye ese nich movekarto 
 module.exports = router;

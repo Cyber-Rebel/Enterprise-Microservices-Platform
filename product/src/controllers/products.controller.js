@@ -46,7 +46,7 @@ const createProduct = async (req, res) => {
 
     return res.status(201).json({ message: 'Product created', product: saved });
   } catch (error) {
-    console.error('Error creating product:', error);
+    console.log('Error creating product:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
@@ -83,4 +83,84 @@ const getProductById=  async(req,res)=>{
 
 }
 
-module.exports = { createProduct ,getProducts,getProductById };
+const updateProduct = async (req, res) => {
+  try{
+    const { id } = req.params;
+    const product = await ProductModel.findById({
+      _id: id,
+      seller: req.user.id // only seller can update his product
+    });
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    if (product.seller.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Forbidden: You are not the seller of this product' });
+    } 
+  
+
+    const  allowabledata = ['title' ,'description','price'];
+
+    for (const key of Object.keys(req.body) ){ // key hae req.body ke andar value may be title,description,price
+      // console.log('the key', key);
+      if(allowabledata.includes(key)){
+        if(key === 'price' && typeof req.body.price ==='object'){
+          if(req.body.price.amount !== undefined){
+            product.price.amount = Number(req.body.price.amount);
+          }
+          if(req.body.price.currency !== undefined){
+            product.price.currency = req.body.price.currency;
+          }
+
+        }
+        else{
+          product[key]= req.body[key]
+        }
+      }
+
+    }
+  
+
+    // Save updated product
+
+    const updatedProduct = await product.save();
+    return res.status(200).json({ message: 'Product updated', product: updatedProduct });
+
+  }catch(error){  
+    console.log('Error updating product:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+const deleteProduct = async (req, res) => {
+
+  const {id } = req.params; 
+  try {
+    const product = await ProductModel.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+    if (product.seller.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Forbidden: You are not the seller of this product' });
+    }
+
+    await ProductModel.deleteOne({ _id: id });
+    return res.status(200).json({ message: 'Product deleted' });
+  } catch (error) {
+    console.log('Error deleting product:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+
+}
+const getProductsBySeller = async (req, res) => {
+  try {
+    const sellerId = req.user.id;
+    const products = await ProductModel.find({ seller: sellerId });
+    return res.status(200).json({ products });
+  } catch (error) {
+    console.log('Error fetching products by seller:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  } 
+
+}
+
+module.exports = { createProduct ,getProducts,getProductById ,updateProduct ,deleteProduct , getProductsBySeller}; 
