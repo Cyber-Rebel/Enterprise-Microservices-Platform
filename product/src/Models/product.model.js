@@ -27,6 +27,8 @@ const productSchema = new mongoose.Schema({
 
 });
 
+productSchema.index({ title: 'text', description: 'text' }); // text index for search
+// ese property upar aap text index create karte ho useke upar query ko fast and excutable karne ke liye
 
 const ProductModel = mongoose.model('product', productSchema);
 

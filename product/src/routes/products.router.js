@@ -1,5 +1,5 @@
 const express = require('express');
-const router= express.Router();
+const  router= express.Router();
 const { createProductValidation } = require('../middlewares/product.validation.js');
 const productController= require('../controllers/products.controller.js');
 const multer  = require('multer');
@@ -9,6 +9,8 @@ const upload = multer({storage: multer.memoryStorage()}); // Store files in memo
 // Validation rules are moved to middleware: ../middlewares/product.validation.js
 
 router.post('/', createauthMiddleware(['admin','seller']), upload.array('images', 5), createProductValidation, productController.createProduct );
-// router.get('/')
+router.get('/',productController.getProducts);
+router.get('/:id',productController.getProductById);
+router.patch('/:id')
 
 module.exports = router;

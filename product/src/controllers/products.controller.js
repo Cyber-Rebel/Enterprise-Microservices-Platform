@@ -50,5 +50,37 @@ const createProduct = async (req, res) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
+const getProducts = async (req, res) => {
+  const {q ,miniprice,maxprice,skip = 0,limit= 20  } = req.query;
+  const filter = {};
+   
+  if (q){
+    filter.$text = { $search: q };  
 
-module.exports = { createProduct };
+  }
+  if(miniprice){
+    filter['price.amount'] = {...filter['price.amount'], $gte: Number(miniprice) };
+
+  }
+
+  if(maxprice){ 
+    filter['price.amount'] = {...filter['price.amount'], $lte: Number(maxprice) };
+  }
+  const products = await ProductModel.find(filter).skip(Number(skip)).limit(Math.min( Number(limit),20))
+  return res.status(200).json({data:products})
+
+}
+const getProductById=  async(req,res)=>{
+
+  const {id} = req.params;
+
+  const product = await ProductModel.findById(id);
+  if(!product){
+    return res.status(404).json({message:'Product not found'})
+  }
+  return res.status(200).json({product:product})
+
+
+}
+
+module.exports = { createProduct ,getProducts,getProductById };
