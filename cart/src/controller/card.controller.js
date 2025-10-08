@@ -2,12 +2,11 @@
 const CardModel= require('../model/card.model.js')
 
 
-const getCard= async (req,res)=>{
-
+const getCard= async (req,res)=>{   
     const user = req.user
-    let card = await CardModel.findOne({user:user._id})
+    let card = await CardModel.findOne({user:user. id})
     if(!card){
-        card = new CardModel({user:user._id,iteams:[]})
+        card = new CardModel({user:user.id,iteams:[]})
         await card.save()
     }
     res.status(200).json({
@@ -23,9 +22,9 @@ const addItemToCard= async (req,res)=>{
 
     const user = req.user
     
-    let card = await CardModel.findOne({user:user._id})
+    let card = await CardModel.findOne({user:user.id})
     if(!card){
-        card = new CardModel({user:user._id,iteams:[]})
+        card = new CardModel({user:user.id,iteams:[]})
     }
     const itemIndex = card.iteams.findIndex(item => item.productId.toString() === productId); 
 
@@ -44,7 +43,7 @@ const updateItemQuantity = async (req, res) => {
     const { productId } = req.params;
     const { qty } = req.body;
       const user = req.user;
-        const cart = await CardModel.findOne({ user: user._id });
+        const cart = await CardModel.findOne({ user: user.id });
           if (!cart) {
         return res.status(404).json({ message: 'Cart not found' });
     }

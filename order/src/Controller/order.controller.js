@@ -1,0 +1,207 @@
+
+const orderModel = require("../Model/order.model.js");
+const axios = require('axios');
+// Create a new order
+const  createOrder = async (req, res) => {
+
+  const user = req.user;
+  const token  = req.cookies.token || req.headers.authorization.split(" ")[1];
+  
+  try {
+    // fetch user cart  form cart services 
+    // hearder use hoto server ke server authentication token pathao
+   const cartResponse = await axios.get('http://localhost:3002/api/cart', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    console.log("cheak this api order constroller js may here itams hog  sakta hae ")
+console.log(cartResponse.data.cart.items);
+   const products  = await Promise.all(cartResponse.data.cart.items.map(async (item) => {
+      return (await axios.get(`http://localhost:3001/api/products/${item.productId}`,{
+        headers: {
+          'Authorization': `Bearer ${token}`  
+        }
+      })
+    
+    ).data.data;
+    }));  
+ 
+        let priceAmount = 0;
+
+         
+
+        const orderItems = cartResponse.data.cart.items.map((item, index) => {
+          console.log("Product Fetch in order controller ")
+            const product = products.find(p => p._id === item.productId)
+           // if not in stock, does not allow order creation
+           console.log("Product Fetch",product)
+
+            if (product.stock < item.quantity) {
+                throw new Error(`Product ${product.title} is out of stock or insufficient stock`)
+            }
+
+            const itemTotal = product.price * item.quantity;
+            priceAmount += itemTotal;
+
+            return {
+              product: item.productId,
+                quantity: item.quantity,
+                price: {
+                    amount: itemTotal,
+                    currency: product.price.currency
+                }
+            };
+          
+        });
+
+        console.log("orderItems",orderItems);
+        console.log("priceAmount",priceAmount);
+       
+        const order = await orderModel.create({
+            user: user.id,
+            items: orderItems,
+            status: "PENDING",
+            totalPrice: {
+                amount: priceAmount,
+                currency: "INR" // assuming all products are in USD for simplicity
+            },
+            shippingAddress: {
+                street: req.body.shippingAddress.street,
+                city: req.body.shippingAddress.city,
+                state: req.body.shippingAddress.state,
+                zip: req.body.shippingAddress.pincode,
+                country: req.body.shippingAddress.country,
+            }
+        })
+
+
+
+        res.status(201).json({ order })
+        // Reduce stock for each product
+    
+    
+
+  } catch (error) {
+    console.error("Error creating order:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+  const getAllOrders = async (req, res) => {
+  const user = req.user;
+
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+
+  try{
+
+    const orders = await orderModel.find({user:user.id}).skip(skip).limit(limit).exec();
+         const totalOrders = await orderModel.countDocuments({ user: user.id });
+ 
+
+    res.status(200).json({
+      orders,
+      meta:{
+        total:totalOrders,
+        page,
+        limit
+      }
+
+    });
+
+
+  }catch(err){
+    console.log("Get order error ",err);
+    res.status(500).json({message:"Internal server error"})
+  }
+
+}
+const getOrderById = async (req, res) => {
+const user = req.user;
+    const orderId = req.params.id;
+    try{
+      const order = await orderModel.findById(orderId)
+      if(!order){
+        return res.status(404).json({message:"Order not found"})
+      }
+      // check user is valid or not 
+      if(order.user.toString() !== user.id){
+        return res.status(403).json({message:"Forbidden: You do not have access to this order"})
+      }
+
+      res.status(200).json({order});
+
+    }catch(err){
+      console.log("Get order by id error ",err);  
+      res.status(500).json({message:"Internal server error"})
+    }
+
+
+
+
+}
+ 
+const cancelOrder = async (req, res) => {
+  const user = req.user;
+  const orderId = req.params.id;
+  try{
+    const order = await orderModel.findById(orderId);
+    if(!order){
+      return res.status(404).json({message:"Order not found"})
+    }
+    // check user is valid or not 
+      if(order.user.toString() !== user.id){
+      return res.status(403).json({message:"Forbidden: You do not have access to this order"})
+    }
+    // only pending orders can be cancelled
+    if(order.status !== "PENDING"){
+      return res.status(400).json({message:"Only pending orders can be cancelled"})
+    }
+    order.status = "CANCELLED";
+    await order.save();
+    res.status(200).json({message:"Order cancelled successfully",order});
+
+  }catch(err){
+    console.log("Cancel order error ",err);
+    res.status(500).json({message:"Internal server error"})
+  }
+} 
+const updateOrderAddress = async (req, res) => {
+  const user = req.user;
+  const orderId = req.params.id;
+  try{
+    const order = await orderModel.findById(orderId);
+    
+     if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+   if (order.user.toString() !== user.id) {
+            return res.status(403).json({ message: "Forbidden: You do not have access to this order" });
+        }
+        // only PENDING orders can have address updated
+
+        if (order.status !== "PENDING") {
+         return  res.status(400).json({ message: "Only PENDING orders can have address updated" });
+            
+        }
+        order.shippingAddress = {
+            street: req.body.shippingAddress.street,
+            city: req.body.shippingAddress.city,
+            state: req.body.shippingAddress.state,
+            zip: req.body.shippingAddress.pincode,
+            country: req.body.shippingAddress.country,
+
+        }
+await order.save();
+res.status(200).json({ message: "Order address updated successfully", order });
+
+  }catch(err){
+ console.log("Error when update order address", err);
+ res.status(500).json({ message: "Internal server error", error: err.message });
+    
+  }
+}
+
+module.exports = { createOrder ,getAllOrders,getOrderById,cancelOrder,updateOrderAddress};
