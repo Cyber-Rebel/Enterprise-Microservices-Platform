@@ -6,7 +6,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser()); 
 
-app.use('/api/cards', CardRouter);
+app.use('/api/carts', CardRouter);
 
 
 module.exports = app;

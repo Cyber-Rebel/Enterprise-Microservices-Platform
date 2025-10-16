@@ -51,11 +51,13 @@ const createProduct = async (req, res) => {
   }
 };
 const getProducts = async (req, res) => {
-  const {q ,miniprice,maxprice,skip = 0,limit= 20,  } = req.query;
+
+  // GET /products?q=phone&miniprice=10000&maxprice=30000&skip=0&limit=10
+  const {q ,miniprice,maxprice,skip = 0,limit= 20,  } = req.query; // frontend se ?q=phone aayega
   const filter = {};
    
   if (q){
-    filter.$text = { $search: q };  
+    filter.$text = { $search: q };  // ese ke liye model create karte waqt index create karna padta hai p-1 product.models.js
 
   }
   if(miniprice){

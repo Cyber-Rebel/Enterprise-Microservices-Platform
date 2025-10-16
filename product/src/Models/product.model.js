@@ -30,7 +30,7 @@ const productSchema = new mongoose.Schema({
     }
 
 });
-
+// index ko create kya na kyu text asites serach kar paye p-1
 productSchema.index({ title: 'text', description: 'text' }); // text index for search
 // ese property upar aap text index create karte ho useke upar query ko fast and excutable karne ke liye
 
