@@ -1,5 +1,6 @@
 const { validationResult } = require('express-validator');
 const ProductModel = require('../Models/product.model.js');
+const {publishToQueue} = require('../broker/broker.js')
 const uploadImage = require('../serviecs/uploadImage.js');
 
 const createProduct = async (req, res) => {
@@ -42,7 +43,9 @@ const createProduct = async (req, res) => {
       images,
     });
 
-    const saved = await product.save();
+    const saved = await product.save(); 
+    await publishToQueue('PRODUCT_CREATED', saved);
+    
 
     return res.status(201).json({ message: 'Product created', product: saved });
   } catch (error) {

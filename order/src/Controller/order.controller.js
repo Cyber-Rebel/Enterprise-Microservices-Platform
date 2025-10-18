@@ -1,6 +1,7 @@
 
 const orderModel = require("../Model/order.model.js");
 const axios = require('axios');
+const {publishToQueue} = require('../broker/broker.js')
 // Create a new order
 const  createOrder = async (req, res) => {
 
@@ -75,7 +76,8 @@ console.log(cartResponse.data.cart.items);
             }
         })
 
-
+        // publish order created event to rabbitmq
+        publishToQueue('ORDER_SELLER_DASHBOARD.ORDER_CREATED',order);
 
         res.status(201).json({ order })
         // Reduce stock for each product

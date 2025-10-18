@@ -24,8 +24,9 @@ const redis = require("../db/redis.js");
       },
       role:role||'user'
     })
-
+    // here you can use promice.all 
       await publishToQueue('Auth_Notification.USER_CREATED', newUser)
+      await publishToQueue('AUTH_SELLER_DASHBOARD.USER_CREATED', newUser)
 
 
      const token = jwt.sign({
