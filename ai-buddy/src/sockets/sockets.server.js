@@ -3,11 +3,15 @@ const jwt = require('jsonwebtoken');
 const cookie = require('cookie'); // cookie and cookie-parser are different packages
 // cookie is a simple parser, while cookie-parser is middleware for Express
 // that uses the cookie package internally.
-const agent = require('../agen  t/agent.js')
+const agent = require('../agent/agent.js')
 async function initSocketServer(httpServer) {
 
     const io = new Server(httpServer,{
-        withCredentials:true,
+        cors: {
+            origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
+            methods: ['GET', 'POST'],
+            credentials: true
+        }
     })
 
     io.use((socket, next) => {

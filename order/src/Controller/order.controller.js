@@ -7,18 +7,18 @@ const  createOrder = async (req, res) => {
 
   const user = req.user;
   const token  = req.cookies.token || req.headers.authorization.split(" ")[1];
-  
+  console.log("User in create order ",user);
   try {
     // fetch user cart  form cart services 
     // hearder use hoto server ke server authentication token pathao
-   const cartResponse = await axios.get('http://localhost:3002/api/cart', {
+   const cartResponse = await axios.get(`http://localhost:3002/api/carts/`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
     console.log("cheak this api order constroller js may here itams hog  sakta hae ")
-console.log(cartResponse.data.cart.items);
-   const products  = await Promise.all(cartResponse.data.cart.items.map(async (item) => {
+console.log(cartResponse.data.card.iteams);
+   const products  = await Promise.all(cartResponse.data.card.iteams.map(async (item) => {
       return (await axios.get(`http://localhost:3001/api/products/${item.productId}`,{
         headers: {
           'Authorization': `Bearer ${token}`  
@@ -31,6 +31,7 @@ console.log(cartResponse.data.cart.items);
         let priceAmount = 0;
 
          
+
 
         const orderItems = cartResponse.data.cart.items.map((item, index) => {
           console.log("Product Fetch in order controller ")
@@ -89,6 +90,7 @@ console.log(cartResponse.data.cart.items);
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
   const getAllOrders = async (req, res) => {
   const user = req.user;

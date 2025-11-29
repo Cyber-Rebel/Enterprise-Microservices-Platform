@@ -9,7 +9,7 @@ function  createauthMiddleware(role=['user']) {
         }
 
         try {
-            const decoded = jwt.verify(token, process.env.jwt); // Use your actual secret
+            const decoded = jwt.verify(token, process.env.JWT_SECRET); // Use your actual secret
             if (!role.includes(decoded.role)) {
                 return res.status(403).json({ message: 'Forbidden: Insufficient rights' });
             }

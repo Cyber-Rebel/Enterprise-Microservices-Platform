@@ -2,7 +2,7 @@ const UserModel = require("../Models/user.models.js");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const {publishToQueue} = require("../broker/broker.js");
-const redis = require("../db/redis.js");
+// const redis = require("../db/redis.js");
  const register = async (req, res) => {
   try {
     const { username, email, password, fullName:{firstName,lastName},role } = req.body
@@ -110,7 +110,7 @@ const logoutUser = async(req,res) =>{
 try{
   const token = req.cookies.token
   if(token){
-    await redis.set(`blacklist:${token}`,'true','EX',24*60*60) // 24*60*60 one day  
+    // await redis.set(`blacklist:${token}`,'true','EX',24*60*60) // 24*60*60 one day  
     // agar use ne token save kar diya and fir logout kar diya  and save kiya token use fir extenstion ki help dal diya to wo firse chalega 
     // to isliye hame token redis se blacklist kar diya 
     // redis ka token ek din ke baad expire kyu koi koi hame set kiya hae wese ham token expire karne 1 din me 
