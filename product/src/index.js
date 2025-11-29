@@ -2,12 +2,15 @@ const express = require('express');
 const productsRouter = require('./routes/products.router.js');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
+const cors = require('cors');
 
 
 const app = express();
 app.use(morgan('dev')); 
 app.use(cookieParser());
+app.use(cors());
 app.use(express.json());
+
 app.use(express.urlencoded({ extended: true }));
 // stocks remain i  post method 
 

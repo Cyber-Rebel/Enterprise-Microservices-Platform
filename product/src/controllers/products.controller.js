@@ -45,6 +45,7 @@ const createProduct = async (req, res) => {
 
     const saved = await product.save(); 
     await publishToQueue('PRODUCT_CREATED', saved);
+    await publishToQueue('Product_Notification.PRODUCT_CREATED', saved);
     
 
     return res.status(201).json({ message: 'Product created', product: saved });
