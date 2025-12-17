@@ -6,88 +6,88 @@ const {publishToQueue} = require('../broker/broker.js')
 const  createOrder = async (req, res) => {
 
   const user = req.user;
-  const token  = req.cookies.token || req.headers.authorization.split(" ")[1];
-  console.log("User in create order ",user);
+  const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
+
   try {
-    // fetch user cart  form cart services 
-    // hearder use hoto server ke server authentication token pathao
-   const cartResponse = await axios.get(`http://localhost:3002/api/carts/`, {
+    // fetch user cart from cart service
+    const cartResponse = await axios.get('http://localhost:3002/api/carts', {
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
-    console.log("cheak this api order constroller js may here itams hog  sakta hae ")
-console.log(cartResponse.data.card.iteams);
-   const products  = await Promise.all(cartResponse.data.card.iteams.map(async (item) => {
-      return (await axios.get(`http://localhost:3001/api/products/${item.productId}`,{
-        headers: {
-          'Authorization': `Bearer ${token}`  
-        }
-      })
-    
-    ).data.data;
-    }));  
- 
-        let priceAmount = 0;
 
-         
+    // Cart service might return `card` with `iteams` (typos) or `cart` with `items`.
+    const cartData = cartResponse?.data?.card || cartResponse?.data?.cart || cartResponse?.data;
+    const cartItems = cartData?.iteams || cartData?.items || [];
 
+    if (!cartItems || cartItems.length === 0) {
+      return res.status(400).json({ message: 'Cart is empty' });
+    }
 
-        const orderItems = cartResponse.data.cart.items.map((item, index) => {
-          console.log("Product Fetch in order controller ")
-            const product = products.find(p => p._id === item.productId)
-           // if not in stock, does not allow order creation
-           console.log("Product Fetch",product)
-
-            if (product.stock < item.quantity) {
-                throw new Error(`Product ${product.title} is out of stock or insufficient stock`)
-            }
-
-            const itemTotal = product.price * item.quantity;
-            priceAmount += itemTotal;
-
-            return {
-              product: item.productId,
-                quantity: item.quantity,
-                price: {
-                    amount: itemTotal,
-                    currency: product.price.currency
-                }
-            };
-          
+    // Fetch product details for each cart item
+    const products = await Promise.all(
+      cartItems.map(async (item) => {
+        const resp = await axios.get(`http://localhost:3001/api/products/${item.productId}`, {
+          headers: { Authorization: `Bearer ${token}` },
         });
+        // product service may nest data differently; support possible shapes
+        return resp?.data?.data || resp?.data?.product || resp?.data;
+      })
+    );
 
-        console.log("orderItems",orderItems);
-        console.log("priceAmount",priceAmount);
-       
-        const order = await orderModel.create({
-            user: user.id,
-            items: orderItems,
-            status: "PENDING",
-            totalPrice: {
-                amount: priceAmount,
-                currency: "INR" // assuming all products are in USD for simplicity
-            },
-            shippingAddress: {
-                street: req.body.shippingAddress.street,
-                city: req.body.shippingAddress.city,
-                state: req.body.shippingAddress.state,
-                zip: req.body.shippingAddress.pincode,
-                country: req.body.shippingAddress.country,
-            }
-        })
+    let priceAmount = 0;
 
-        // publish order created event to rabbitmq
-        publishToQueue('ORDER_SELLER_DASHBOARD.ORDER_CREATED',order);
+    // Build order items with defensive checks
+    const orderItems = cartItems.map((item) => {
+      const product = products.find((p) => (p._id ? p._id.toString() === item.productId.toString() : false)) || products.find((p) => p.id === item.productId) || products[0];
 
-        res.status(201).json({ order })
-        // Reduce stock for each product
-    
-    
+      if (!product) {
+        throw new Error(`Product not found: ${item.productId}`);
+      }
 
+      if (typeof product.stock !== 'undefined' && product.stock < item.quantity) {
+        throw new Error(`Product ${product.title || product.name || product._id} is out of stock or insufficient stock`);
+      }
+
+      const unitPrice = product.price?.amount ?? product.price ?? 0;
+      const itemTotal = unitPrice * item.quantity;
+      priceAmount += itemTotal;
+
+      return {
+        productId: item.productId,
+        quantity: item.quantity,
+        price: {
+          amount: itemTotal,
+          currency: product.price?.currency || 'INR',
+        },
+      };
+    });
+
+    const order = await orderModel.create({
+      user: user.id,
+      items: orderItems,
+      status: 'PENDING',
+      totalPrice: {
+        amount: priceAmount,
+        currency: 'INR',
+      },
+      shippingAddress: {
+        street: req.body.shippingAddress?.street,
+        city: req.body.shippingAddress?.city,
+        state: req.body.shippingAddress?.state,
+        zip: req.body.shippingAddress?.pincode,
+        country: req.body.shippingAddress?.country,
+      },
+    });
+
+    // publish order created event to rabbitmq
+    publishToQueue('ORDER_SELLER_DASHBOARD.ORDER_CREATED', order);
+
+    res.status(201).json({ order });
   } catch (error) {
-    console.error("Error creating order:", error);
-    res.status(500).json({ message: "Internal server error" });
+    console.error('Error creating order:', error);
+    const message = error?.response?.data?.message || error.message || 'Internal server error';
+    res.status(500).json({ message });
   }
 };
 

@@ -95,11 +95,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full flex items-center justify-center">
               <span className="text-white font-semibold text-lg">
-                {user?.name?.charAt(0)?.toUpperCase() || 'S'}
+                {user?.fullName?.firstName?.charAt(0)?.toUpperCase() || user?.username?.charAt(0)?.toUpperCase() || 'S'}
               </span>
             </div>
             <div>
-              <p className="text-white font-medium truncate">{user?.name || 'Seller'}</p>
+              <p className="text-white font-medium truncate">
+                {user?.fullName?.firstName ? `${user.fullName.firstName} ${user.fullName.lastName || ''}` : user?.username || 'Seller'}
+              </p>
               <p className="text-gray-400 text-sm truncate">{user?.email || 'seller@example.com'}</p>
             </div>
           </div>

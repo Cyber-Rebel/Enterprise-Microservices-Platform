@@ -73,7 +73,7 @@ const Dashboard = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold">
-              Welcome back, {user?.name || 'Seller'}! 👋
+              Welcome back, {user?.fullName?.firstName || user?.username || 'Seller'}! 👋
             </h1>
             <p className="mt-2 text-orange-100">
               Here's what's happening with your store today.

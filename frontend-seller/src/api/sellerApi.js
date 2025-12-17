@@ -22,12 +22,12 @@ export const sellerAPI = {
   },
 
   // Get seller's orders
-  getOrders: async () => {
-    const response = await sellerApi.get('/api/seller/dashbord/orders');
+  getOrders: async (page = 1, limit = 10) => {
+    const response = await sellerApi.get(`/api/seller/dashbord/orders?page=${page}&limit=${limit}`);
     return response.data;
   },
 
-  // Get seller's products
+  // Get seller's products from dashboard
   getProducts: async () => {
     const response = await sellerApi.get('/api/seller/dashbord/products');
     return response.data;

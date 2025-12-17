@@ -1,5 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { useEffect } from 'react';
+import { getMe } from './store/slices/authSlice';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -11,7 +13,18 @@ import DashboardLayout from './components/DashboardLayout';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useSelector((state) => state.auth);
+  const { isAuthenticated, isLoading } = useSelector((state) => state.auth);
+  
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+          <p className="mt-4 text-gray-500">Loading...</p>
+        </div>
+      </div>
+    );
+  }
   
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -32,6 +45,13 @@ const PublicRoute = ({ children }) => {
 };
 
 function App() {
+  const dispatch = useDispatch();
+
+  // Check auth status on app load
+  useEffect(() => {
+    dispatch(getMe());
+  }, [dispatch]);
+
   return (
     <Router>
       <Routes>
@@ -69,7 +89,7 @@ function App() {
         </Route>
 
         {/* Redirects */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>

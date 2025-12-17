@@ -36,11 +36,14 @@ const {publishToQueue} = require("../broker/broker.js");
         role:newUser.role
 
      },process.env.JWT_SECRET)
-     res.cookie('token',token,{
-        httpOnly:true,
-        secure:true,// client side   javascript hae wo ab cookie ko access kabhi kar nahi sakti jo sirf apka server hae sirf wahi cookie ke data acces kar sakt ahae clear bhi  
-        maxAge:24*60*60*1000 // 1 day  ekdin tak data cookie data hoga  
-     })
+     const cookieOptions = {
+       httpOnly: true,
+       secure: process.env.NODE_ENV === 'production',
+       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+       maxAge: 24 * 60 * 60 * 1000, // 1 day
+     };
+
+     res.cookie('token', token, cookieOptions);
 
 
    
@@ -78,11 +81,14 @@ const login = async(req,res )=>{
  
           },process.env.JWT_SECRET)
 
-          res.cookie('token',token,{
-             httpOnly:true,
-             secure:true,// client side   javascript hae wo ab cookie ko access kabhi kar nahi sakti jo sirf apka server hae sirf wahi cookie ke data acces kar sakt ahae clear bhi  
-             maxAge:24*60*60*1000 // 1 day  ekdin tak data cookie data hoga  
-          })
+          const cookieOptions = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            maxAge: 24 * 60 * 60 * 1000, // 1 day
+          };
+
+          res.cookie('token', token, cookieOptions);
           res.status(200).json({user:{
             id: user._id,
             username: user.username,
@@ -118,10 +124,12 @@ try{
   if(!token){
     return res.status(400).json({message:'No token found'})
   }
-  res.clearCookie('token',{
-    httpOnly:true,
-    secure:true
-  })
+  const clearOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+  };
+  res.clearCookie('token', clearOptions);
   res.status(200).json({message:'Logged out successfully'})
 
 }
