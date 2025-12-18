@@ -1,0 +1,50 @@
+# Dependencies
+node_modules
+*/node_modules
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs
+
+# Test files
+**/__tests__
+**/tests
+**/*.test.js
+**/*.spec.js
+coverage
+
+# Documentation
+*.md
+!README.md
+
+# Frontend (not needed in backend containers)
+frontend-user
+frontend-seller
+
+# Docker files (not needed inside containers)
+docker
+Dockerfile*
+docker-compose*.yml
+
+# Environment files (secrets should be injected)
+.env
+.env.*
+!.env.example
+
+# Misc
+*.excalidraw
+temp.*
